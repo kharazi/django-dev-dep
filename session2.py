@@ -1,3 +1,7 @@
+class MashrootException(Exception):
+    pass
+
+
 class Human:
 
     def __init__(self, first_name, last_name):
@@ -30,10 +34,18 @@ class Student(Human):
         s = 0
         for g in self.grades:
             s += g
-        if len(self.grades) == 0:
-            return 0
-        else:
-            return s / len(self.grades)
+        # if len(self.grades) == 0:
+        #     return 0
+        # else:
+        # try:
+        if s / len(self.grades) < 12:
+            raise MashrootException
+        return s / len(self.grades)
+        # except ZeroDivisionError:
+        #     return 0
+        # except KeyError:
+        #     print('key error khordam')
+        #     return 1
 
     def say_hello(self):
         print("Salam, man Student hastam") 
@@ -75,8 +87,10 @@ class Course:
     def get_class_average(self):
         sum = 0
         for s in self.students:
-            sum += s.get_average()
-
+            try:
+                sum += s.get_average()
+            except MashrootException:
+                sum += 0
         return sum / len(self.students)
 
     def add_student(self, stu):
@@ -84,7 +98,7 @@ class Course:
 
 
 ali = Human('Ali', 'Alavi')
-vahid = Student('vahid', 'kharazi', grades=[19, 12, 7])
+vahid = Student('vahid', 'kharazi', grades=[1, 2, 3])
 sara = Student('Sara', 'Saravi', grades=[3, 10, 20, 18])
 majid = Student('Majid', 'Majd', grades=[3, 11, 3])
 ahmad = Teacher('Ahmad', 'Ahmadi')
