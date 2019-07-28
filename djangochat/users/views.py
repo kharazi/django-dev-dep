@@ -1,94 +1,66 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils.datastructures import MultiValueDictKeyError
-
-class User:
-    
-    def __init__(self, first_name, last_name, grades=[]):
-        self.first_name = first_name
-        self.last_name = last_name
-        self.grades = grades
-
-    def __str__(self):
-        return "%s %s" % (self.first_name, self.last_name)
-        # return self.first_name + ' ' + self.last_name
-
-    def get_fullname(self):
-        return "%s %s" % (self.first_name, self.last_name)
-
-
-users = [
-    User('Vahid', 'Kharazi', [1, 2, 18]),
-    User('Sara', 'Ahmadi', [4, 20, 15]),
-    User('Tarane', 'Ali Doosti', [17, 7])
-]
-
-def search_query(query):
-    result = []
-    for u in users:
-        if u.first_name == query:
-            result.append(u)
-    return result
+from users.models import Users, Message
 
 
 def user_list(request):
     if request.method == 'GET':
-        print(request.GET)
         try:
-            q = request.GET['search']
-            result = search_query(q)
+            print(request.GET)
+            query = request.GET['search']
+
+            users = Users.objects.filter(first_name__startswith=query)
         except MultiValueDictKeyError:
-            result = users        
+            users = Users.objects.all()
+
+
+
+        messages = Message.objects.all()
+        for m in messages:
+            print(
+                m.sender,
+                "->",
+                m.receiver.first_name,
+                ": ",
+                m.text,
+                m.date
+            )
+        # for m in messages:
+        #     try:
+        #         s = Users.objects.filter(id=m.sender)[0]
+        #         r = Users.objects.filter(id=m.receiver)[0]
+        #         print(
+        #             s,
+        #             "->",
+        #             r,
+        #             ": ",
+        #             m.text,
+        #             m.date
+        #         )
+        #     except IndexError:
+        #         pass
+
+
+
         return render(
             request,
             'userlist.html',
             {
-                "users": result,
+                "users": users,
             }
         )
-    elif request.method == 'POST':
-        print('request.POST:', request.POST)
-        new_user = User(
-            first_name=request.POST['firstname'],
-            last_name=request.POST['lastname'])
-        users.append(new_user)
+    elif request.method == "POST":
+        Users(
+            first_name=request.POST['first_name'],
+            last_name=request.POST['last_name'],
+            number_of_friends=132
+        ).save()
+        users = Users.objects.all()
         return render(
             request,
-            'success.html'
+            'userlist.html',
+            {
+                "users": users,
+            }
         )
-
-
-# def user_list(request):
-#     print(request.GET)
-#     q = request.GET['search']
-#     result = search_query(q)
-#     return render(
-#         request,
-#         'userlist.html',
-#         {
-#             "users": result,
-#         }
-#     )
-
-# def user_list(request):
-#     response_text = ""
-#     for u in users:
-#         response_text += "<br/>"
-#         response_text += u.get_fullname()
-#     return render(
-#         request,
-#         'userlist.html',
-#         {
-#             "name": "Sara",
-#             "users": users,
-#             "text": response_text
-#         }
-#     )
-
-# def user_list(request):
-#     response_text = ""
-#     for u in users:
-#         response_text += "<br/>"
-#         response_text += u.get_fullname()
-#     return HttpResponse(
-#         "<html> Salam, in list user hast: %s <html/>" % (response_text))
