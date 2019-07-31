@@ -1,66 +1,45 @@
+from datetime import datetime
+
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils.datastructures import MultiValueDictKeyError
-from users.models import Users, Message
+
+from users.models import Users, Messages, Conversations
 
 
-def user_list(request):
+
+def conversation_view(request, userparameter):
     if request.method == 'GET':
-        try:
-            print(request.GET)
-            query = request.GET['search']
+        pass
 
-            users = Users.objects.filter(first_name__startswith=query)
-        except MultiValueDictKeyError:
-            users = Users.objects.all()
-
-
-
-        messages = Message.objects.all()
-        for m in messages:
-            print(
-                m.sender,
-                "->",
-                m.receiver.first_name,
-                ": ",
-                m.text,
-                m.date
-            )
-        # for m in messages:
-        #     try:
-        #         s = Users.objects.filter(id=m.sender)[0]
-        #         r = Users.objects.filter(id=m.receiver)[0]
-        #         print(
-        #             s,
-        #             "->",
-        #             r,
-        #             ": ",
-        #             m.text,
-        #             m.date
-        #         )
-        #     except IndexError:
-        #         pass
-
-
-
-        return render(
-            request,
-            'userlist.html',
-            {
-                "users": users,
-            }
-        )
     elif request.method == "POST":
-        Users(
-            first_name=request.POST['first_name'],
-            last_name=request.POST['last_name'],
-            number_of_friends=132
-        ).save()
-        users = Users.objects.all()
-        return render(
-            request,
-            'userlist.html',
-            {
-                "users": users,
-            }
+        try:
+            print(request.POST['message'])
+            u = Users.objects.filter(first_name="sara")[0]
+            c = Conversations.objects.filter(
+                id=int(userparameter))[0]
+            Messages(
+                sender_id=u,
+                conversation_id=c,
+                text=request.POST['message'],
+                date=datetime.now()
+            ).save()
+        except ValueError:
+            print("there is no userparameters")
+
+
+    try:
+        messages = Messages.objects.filter(
+            conversation_id=int(userparameter)
         )
+    except ValueError:
+        messages =  []
+
+    return render(
+        request,
+        'userlist.html',
+        {
+            "messages": messages,
+            "conversations": Conversations.objects.all()
+        }
+    )
