@@ -7,38 +7,25 @@ from django.utils.datastructures import MultiValueDictKeyError
 from users.models import Users
 from chat.models import Messages, Conversations
 
-def conversation_view(request, userparameter):
-    if request.method == 'GET':
-        pass
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
-    elif request.method == "POST":
-        try:
-            print(request.POST['message'])
-            u = Users.objects.filter(first_name="sara")[0]
-            c = Conversations.objects.filter(
-                id=int(userparameter))[0]
-            Messages(
-                sender_id=u,
-                conversation_id=c,
-                text=request.POST['message'],
-                date=datetime.now()
-            ).save()
-        except ValueError:
-            print("there is no userparameters")
+from chat.serializers import RequestChatSerializer
 
 
-    try:
-        messages = Messages.objects.filter(
-            conversation_id=int(userparameter)
+class ChatView(APIView):
+
+    def post(self, request):
+        serializer = RequestChatSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    'message': 'Message saved!'
+                }
+            )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
         )
-    except ValueError:
-        messages =  []
-
-    return render(
-        request,
-        'conversationlist.html',
-        {
-            "messages": messages,
-            "conversations": Conversations.objects.all()
-        }
-    )

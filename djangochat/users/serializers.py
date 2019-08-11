@@ -2,6 +2,22 @@ from users.models import Users
 from rest_framework import serializers
 
 
+class RequestSignupSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Users
+        fields = '__all__'
+
+
+class RequestLoginSerializer(serializers.Serializer):
+    username = serializers.CharField(
+        required=True, max_length=30, allow_blank=False 
+    )
+    password = serializers.CharField(
+        required=True, max_length=128, allow_blank=False 
+    )
+
+
 class RequestGetSerializer(serializers.Serializer):
     first_name = serializers.CharField(
         required=False, allow_blank=False, max_length=100)
