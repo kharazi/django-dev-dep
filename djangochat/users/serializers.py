@@ -1,13 +1,24 @@
-from users.models import Users
+import hashlib
+from django.contrib.auth.models import User
 from rest_framework import serializers
 
 
 class RequestSignupSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Users
+        model = User
         fields = '__all__'
 
+    def create(self, data):
+        u = User(
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            username=data['username'],
+        )
+        u.set_password(data['password'])
+        u.save()
+        return u
+        
 
 class RequestLoginSerializer(serializers.Serializer):
     username = serializers.CharField(
@@ -63,7 +74,7 @@ class UsersSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         print("I'm in the create function")
-        u = Users(
+        u = User(
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
             birthday=validated_data['birthday'],

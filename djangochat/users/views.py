@@ -1,9 +1,11 @@
-import random 
+import random
+import uuid
 from datetime import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
-
-from users.models import Users
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from django.http import JsonResponse
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -30,32 +32,81 @@ class SignupView(APIView):
         )
 
 
+
+def login_view(request):
+    if request.method == 'POST':
+        serializer = RequestLoginSerializer(data=request.POST)
+        if serializer.is_valid():
+            u = authenticate(
+                request,
+                username=serializer.data['username'],
+                password=serializer.data['password'])
+
+            if u:
+                print(u, request)
+                login(request, u)
+                return JsonResponse(
+                    {
+                        'message': 'Your account info is correct',
+                        'data': {
+                            'first_name': u.first_name,
+                            "id": u.id,
+                        }
+                    },
+                    status=status.HTTP_200_OK
+                )
+            else:
+                return JsonResponse(
+                    {
+                        'message': 'Your password is wrong'
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            return JsonResponse(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
 class LoginView(APIView):
 
     def post(self, request):
         serializer = RequestLoginSerializer(data=request.data)
         if serializer.is_valid():
-            try:
-                u = Users.objects.get(username=serializer.data['username'])
-            except ObjectDoesNotExist:
+            # try:
+            #     u = User.objects.get(
+            #         username=serializer.data['username']
+            #     )
+            # except ObjectDoesNotExist:
+                # return Response(
+                #     {
+                #         'message': 'There is not any account with this username'
+                #     },
+                #     status=status.HTTP_404_NOT_FOUND
+                # ) 
+
+
+            u = authenticate(
+                request,
+                username=serializer.data['username'],
+                password=serializer.data['password'])
+
+            if u is None:
                 return Response(
                     {
                         'message': 'There is not any account with this username'
                     },
                     status=status.HTTP_404_NOT_FOUND
                 ) 
-            print(u.password)
-            if serializer.data['password'] == u.password:
-                random_token = random.randint(0, 100000)
-                u.token = random_token
-                u.save()
+            if u.check_password(serializer.data['password']):
+                print(u)
+                print(login(request, u))
                 return Response(
                     {
                         'message': 'Your account info is correct',
                         'data': {
                             'first_name': u.first_name,
                             "id": u.id,
-                            'token': random_token
                         }
                     },
                     status=status.HTTP_200_OK
@@ -80,7 +131,7 @@ class UserListItemView(APIView):
         request_serializer = RequestGetSerializer(data=request.GET)
         if request_serializer.is_valid():
 
-            users = Users.objects
+            users = User.objects
             if 'first_name' in request_serializer.data:
                 users = users.filter(
                     first_name=request_serializer.data['first_name']

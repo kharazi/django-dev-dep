@@ -4,7 +4,6 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils.datastructures import MultiValueDictKeyError
 
-from users.models import Users
 from chat.models import Messages, Conversations
 
 from rest_framework.views import APIView
@@ -17,6 +16,8 @@ from chat.serializers import RequestChatSerializer
 class ChatView(APIView):
 
     def post(self, request):
+        print(request.user)
+        print('-------')
         serializer = RequestChatSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
