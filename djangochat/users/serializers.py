@@ -3,6 +3,28 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 
+
+class ShortUserProfileSerializer(serializers.ModelSerializer):
+    
+    full_name = serializers.SerializerMethodField()
+
+    def get_full_name(self, obj):
+        return obj.first_name + ' ' + obj.last_name
+
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'full_name')
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        exclude = ('password',)
+
+
+
 class RequestSignupSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -22,7 +44,7 @@ class RequestSignupSerializer(serializers.ModelSerializer):
 
 class RequestLoginSerializer(serializers.Serializer):
     username = serializers.CharField(
-        required=True, max_length=30, allow_blank=False 
+        required=True, max_length=30, allow_blank=False,
     )
     password = serializers.CharField(
         required=True, max_length=128, allow_blank=False 

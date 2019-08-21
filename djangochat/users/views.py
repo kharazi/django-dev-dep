@@ -32,46 +32,11 @@ class SignupView(APIView):
         )
 
 
-
-def login_view(request):
-    if request.method == 'POST':
-        serializer = RequestLoginSerializer(data=request.POST)
-        if serializer.is_valid():
-            u = authenticate(
-                request,
-                username=serializer.data['username'],
-                password=serializer.data['password'])
-
-            if u:
-                print(u, request)
-                login(request, u)
-                return JsonResponse(
-                    {
-                        'message': 'Your account info is correct',
-                        'data': {
-                            'first_name': u.first_name,
-                            "id": u.id,
-                        }
-                    },
-                    status=status.HTTP_200_OK
-                )
-            else:
-                return JsonResponse(
-                    {
-                        'message': 'Your password is wrong'
-                    },
-                    status=status.HTTP_404_NOT_FOUND
-                )
-        else:
-            return JsonResponse(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
 class LoginView(APIView):
 
     def post(self, request):
         serializer = RequestLoginSerializer(data=request.data)
+        print('here')
         if serializer.is_valid():
             # try:
             #     u = User.objects.get(
@@ -90,7 +55,7 @@ class LoginView(APIView):
                 request,
                 username=serializer.data['username'],
                 password=serializer.data['password'])
-
+            # u = 'salam'
             if u is None:
                 return Response(
                     {
@@ -98,9 +63,10 @@ class LoginView(APIView):
                     },
                     status=status.HTTP_404_NOT_FOUND
                 ) 
-            if u.check_password(serializer.data['password']):
+            if u:
                 print(u)
-                print(login(request, u))
+                print('here')
+                login(request, u)
                 return Response(
                     {
                         'message': 'Your account info is correct',
